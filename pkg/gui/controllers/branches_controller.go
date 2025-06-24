@@ -98,7 +98,7 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItems(self.delete),
+			Handler:           self.withItemsRange(self.delete),
 			GetDisabledReason: self.require(self.itemRangeSelected(self.branchesAreReal)),
 			Description:       self.c.Tr.Delete,
 			Tooltip:           self.c.Tr.BranchDeleteTooltip,
@@ -544,7 +544,7 @@ func (self *BranchesController) localAndRemoteDelete(branches []*models.Branch) 
 	return self.c.Helpers().BranchesHelper.ConfirmLocalAndRemoteDelete(branches)
 }
 
-func (self *BranchesController) delete(branches []*models.Branch) error {
+func (self *BranchesController) delete(branches []*models.Branch, startIdx int, endIdx int) error {
 	checkedOutBranch := self.c.Helpers().Refs.GetCheckedOutRef()
 	isBranchCheckedOut := lo.SomeBy(branches, func(branch *models.Branch) bool {
 		return checkedOutBranch.Name == branch.Name
@@ -557,6 +557,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalBranches, self.c.Tr.DeleteLocalBranch),
 		Key:   'c',
 		OnPress: func() error {
+			self.context().SetSelection(startIdx)
 			return self.localDelete(branches)
 		},
 	}
@@ -568,6 +569,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteRemoteBranches, self.c.Tr.DeleteRemoteBranch),
 		Key:   'r',
 		OnPress: func() error {
+			self.context().SetSelection(startIdx)
 			return self.remoteDelete(branches)
 		},
 	}
@@ -581,6 +583,7 @@ func (self *BranchesController) delete(branches []*models.Branch) error {
 		Label: lo.Ternary(len(branches) > 1, self.c.Tr.DeleteLocalAndRemoteBranches, self.c.Tr.DeleteLocalAndRemoteBranch),
 		Key:   'b',
 		OnPress: func() error {
+			self.context().SetSelection(startIdx)
 			return self.localAndRemoteDelete(branches)
 		},
 	}

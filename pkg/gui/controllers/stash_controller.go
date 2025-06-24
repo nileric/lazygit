@@ -50,7 +50,7 @@ func (self *StashController) GetKeybindings(opts types.KeybindingsOpts) []*types
 		},
 		{
 			Key:               opts.GetKey(opts.Config.Universal.Remove),
-			Handler:           self.withItems(self.handleStashDrop),
+			Handler:           self.withItemsRange(self.handleStashDrop),
 			GetDisabledReason: self.require(self.itemRangeSelected()),
 			Description:       self.c.Tr.Drop,
 			Tooltip:           self.c.Tr.StashDropTooltip,
@@ -161,7 +161,7 @@ func (self *StashController) handleStashPop(stashEntry *models.StashEntry) error
 	return nil
 }
 
-func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) error {
+func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry, startIdx int, endIdx int) error {
 	self.c.Confirm(types.ConfirmOpts{
 		Title:  self.c.Tr.StashDrop,
 		Prompt: self.c.Tr.SureDropStashEntry,
@@ -175,6 +175,7 @@ func (self *StashController) handleStashDrop(stashEntries []*models.StashEntry) 
 					return err
 				}
 			}
+			self.context().SetSelection(startIdx)
 			return nil
 		},
 	})
